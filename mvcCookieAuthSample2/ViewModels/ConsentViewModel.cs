@@ -5,18 +5,20 @@ using System.Threading.Tasks;
 
 namespace mvcCookieAuthSample.ViewModels
 {
-    public class ConsentViewModel
+    public class ConsentViewModel:InputConstentViewModel
     {
         public string CleintId { get; set; }
-        public string CleintName { get; set; }
+        public string ClientName { get; set; }
 
         public string ClientUrl { get; set; }
-        public string CleintLogoUrl { get; set; }
+        public string ClientLogoUrl { get; set; }
 
-        public bool AllowRemeberConsent { get; set; }
+        public bool RemeberConsent { get; set; }
 
         public IEnumerable<ScopeViewModel> IdentityScopes { get; set; }
 
         public IEnumerable<ScopeViewModel> ResourceScopes { get; set; }
+
+        public string ReturnUrl { get; set; }
     }
 }

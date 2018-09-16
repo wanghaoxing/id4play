@@ -12,6 +12,7 @@ using mvcCookieAuthSample.Data;
 using Microsoft.EntityFrameworkCore;
 using mvcCookieAuthSample.Models;
 using Microsoft.AspNetCore.Identity;
+using mvcCookieAuthSample.Services;
 
 namespace mvcCookieAuthSample
 {
@@ -27,16 +28,21 @@ namespace mvcCookieAuthSample
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            });
+            services.AddIdentity<ApplicationUser, ApplicationUserRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddInMemoryApiResources(Config.GetApiResources())
                 .AddInMemoryClients(Config.GetClients())
-                .AddTestUsers(Config.GetUsers());
+                .AddAspNetIdentity<ApplicationUser>();
+                //.AddTestUsers(Config.GetUsers());
 
-            //services.AddIdentity<ApplicationUser, ApplicationUserRole>()
-            //    .AddEntityFrameworkStores<ApplicationDbContext>()
-            //    .AddDefaultTokenProviders();
 
             //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             //    .AddCookie(options => {
@@ -51,7 +57,7 @@ namespace mvcCookieAuthSample
             //    options.Password.RequiredLength = 12;
             //});
 
-
+            services.AddScoped<ConstentService>();
             services.AddMvc();
         }
 
@@ -69,7 +75,6 @@ namespace mvcCookieAuthSample
 
             app.UseStaticFiles();
             app.UseIdentityServer();
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

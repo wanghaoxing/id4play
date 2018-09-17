@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -50,7 +51,18 @@ namespace MvcClient
 
                     options.ClientId = "mvc";
                     options.SaveTokens = true;
+                    options.ClaimActions.MapJsonKey("sub", "sub");
+                    options.ClaimActions.MapJsonKey("preferred_username", "preferred_username");
+                    options.ClaimActions.MapJsonKey("sub", "sub");
+                    options.ClaimActions.MapJsonKey("avatar", "avatar");
+                    options.ClaimActions.MapCustomJson("role", jobj=>jobj["role"].ToString());
+
+                    options.Scope.Add("offline_access");
+                    options.Scope.Add("openid");
+                    options.Scope.Add("profile");
                 });
+
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

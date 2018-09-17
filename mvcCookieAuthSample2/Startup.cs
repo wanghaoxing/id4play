@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using mvcCookieAuthSample.Models;
 using Microsoft.AspNetCore.Identity;
 using mvcCookieAuthSample.Services;
+using IdentityServer4.Services;
 
 namespace mvcCookieAuthSample
 {
@@ -40,8 +41,9 @@ namespace mvcCookieAuthSample
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddInMemoryApiResources(Config.GetApiResources())
                 .AddInMemoryClients(Config.GetClients())
-                .AddAspNetIdentity<ApplicationUser>();
-                //.AddTestUsers(Config.GetUsers());
+                .AddAspNetIdentity<ApplicationUser>()
+                .Services.AddScoped<IProfileService, ProfileService>();
+            //.AddTestUsers(Config.GetUsers());
 
 
             //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -49,13 +51,13 @@ namespace mvcCookieAuthSample
             //        options.LoginPath = "/Account/Login";
             //    });
 
-            //services.Configure<IdentityOptions>(options =>
-            //{
-            //    options.Password.RequireLowercase = true;
-            //    options.Password.RequireNonAlphanumeric = true;
-            //    options.Password.RequireUppercase = true;
-            //    options.Password.RequiredLength = 12;
-            //});
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 6;
+            });
 
             services.AddScoped<ConstentService>();
             services.AddMvc();

@@ -26,7 +26,7 @@ namespace mvcCookieAuthSample
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                //.UseEnvironment("Development")
+                .UseEnvironment("Development")
                 .UseStartup<Startup>()
                 .Build();
     }

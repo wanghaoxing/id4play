@@ -14,6 +14,10 @@ using mvcCookieAuthSample.Models;
 using Microsoft.AspNetCore.Identity;
 using mvcCookieAuthSample.Services;
 using IdentityServer4.Services;
+using IdentityServer4.EntityFramework;
+using System.Reflection;
+using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
 
 namespace mvcCookieAuthSample
 {
@@ -29,6 +33,8 @@ namespace mvcCookieAuthSample
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var connectiong = @"Server=Localhost\Dev;Database=IdentityServer4;UID=sa;PWD=wanghao0616";
+            var migrationAssembal = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
@@ -38,10 +44,26 @@ namespace mvcCookieAuthSample
                 .AddDefaultTokenProviders();
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddInMemoryApiResources(Config.GetApiResources())
-                .AddInMemoryClients(Config.GetClients())
+                //.AddInMemoryIdentityResources(Config.GetIdentityResources())
+                //.AddInMemoryApiResources(Config.GetApiResources())
+                //.AddInMemoryClients(Config.GetClients())
                 .AddAspNetIdentity<ApplicationUser>()
+                .AddConfigurationStore(options =>
+                {
+                    options.ConfigureDbContext = bulid =>
+                    {
+                        bulid.UseSqlServer(connectiong, sql => sql.MigrationsAssembly(migrationAssembal));
+                    };
+                })
+                .AddOperationalStore(
+                options =>
+                {
+                    options.ConfigureDbContext = bulid =>
+                    {
+                        bulid.UseSqlServer(connectiong, sql => sql.MigrationsAssembly(migrationAssembal));
+                    };
+                }
+                )
                 .Services.AddScoped<IProfileService, ProfileService>();
             //.AddTestUsers(Config.GetUsers());
 
@@ -74,7 +96,7 @@ namespace mvcCookieAuthSample
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-
+            InitIdentityServerDataBase(app);
             app.UseStaticFiles();
             app.UseIdentityServer();
             app.UseMvc(routes =>
@@ -84,6 +106,41 @@ namespace mvcCookieAuthSample
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
+        }
+
+        public void InitIdentityServerDataBase(IApplicationBuilder app)
+        {
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                scope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>().Database.Migrate();
+                var configurationDbContext = scope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+                if (!configurationDbContext.Clients.Any())
+                {
+                    foreach(var client in Config.GetClients())
+                    {
+                        configurationDbContext.Clients.Add(client.ToEntity());
+                    }
+                    configurationDbContext.SaveChanges();
+                }
+
+                if (!configurationDbContext.ApiResources.Any())
+                { 
+                    foreach (var api in Config.GetApiResources())
+                    {
+                        configurationDbContext.ApiResources.Add(api.ToEntity());
+                    }
+                    configurationDbContext.SaveChanges();
+
+                }
+                if (!configurationDbContext.IdentityResources.Any())
+                {
+                    foreach (var id in Config.GetIdentityResources())
+                    {
+                        configurationDbContext.IdentityResources.Add(id.ToEntity());
+                    }
+                    configurationDbContext.SaveChanges();
+                }
+            }
         }
     }
 }
